@@ -1,8 +1,8 @@
 #include <WiFi.h>
 
 // WiFi credentials
-const char* ssid = "B";
-const char* password = "indrabyu21";
+const char* ssid = "Yoe_Dean";
+const char* password = "12345678";
 
 void setup() {
   // Start the serial communication
