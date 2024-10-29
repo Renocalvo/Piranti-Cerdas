@@ -1,7 +1,7 @@
 
 #include <WiFi.h>
 
-const String ssid = "UMM.Hotspot";
+const String ssid = "monyt";
 
 void setup() {
   Serial.begin(9600);
