@@ -1,82 +1,96 @@
 #include <Wire.h>
-#include <MPU6050_tockn.h>
-#include <WiFi.h>
+#include <MPU6050_tockn.h>  // Library Tockn untuk MPU6050
+#include <WiFi.h>  // Library WiFi untuk ESP32
 
-// Informasi WiFi
-const char* ssid = "Jaringan sibuk";
-const char* password = "Nenobayuramadhan";
-
-// Deklarasi sensor dan buzzer
 MPU6050 mpu(Wire);
-#define BUZZER_PIN 23
+const char* ssid = "A50";        // Ganti dengan SSID WiFi Anda
+const char* password = ""; // Ganti dengan password WiFi Anda
 
-// Ambang batas sudut
-const float THRESHOLD_ANGLE = 1.0;
+int buzzerPin = 23; // Pin untuk Buzzer
+float threshold = 30.0;  // Ambang batas sudut
+float initialAngleX, initialAngleY, initialAngleZ;  // Sudut awal (kalibrasi sisi depan)
 
 void setup() {
   Serial.begin(115200);
-  Wire.begin();
-  pinMode(BUZZER_PIN, OUTPUT);
+  Wire.begin(21, 22);  // SDA di GPIO 21, SCL di GPIO 22
+  mpu.begin();
+  mpu.calcGyroOffsets(true);  // Kalibrasi sensor
 
-  // Inisialisasi WiFi
+  pinMode(buzzerPin, OUTPUT);
+  digitalWrite(buzzerPin, LOW);
+
+  connectToWiFi();
+  calibrateInitialPosition();  // Membaca dan menyimpan sudut awal (sisi depan)
+}
+
+void loop() {
+  mpu.update();  // Memperbarui data sensor
+
+  if (WiFi.status() == WL_CONNECTED) {
+    float angleX = mpu.getAngleX();
+    float angleY = mpu.getAngleY();
+    float angleZ = mpu.getAngleZ();
+
+    displayAngles(angleX, angleY, angleZ);
+    checkAngleThreshold(angleX, angleY, angleZ);
+
+    delay(500);  // Jeda 500ms
+  }
+}
+
+void connectToWiFi() {
+  Serial.print("\nMenghubungkan ke WiFi...");
   WiFi.begin(ssid, password);
-  Serial.print("Menghubungkan ke WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.print(".");
   }
-  Serial.println("\nTerhubung ke WiFi!");
-
-  // Inisialisasi MPU6050
-  mpu.begin();
-  mpu.calcGyroOffsets(true);  // Kalibrasi sensor
-  Serial.println("MPU6050 siap!");
+  Serial.println(" Terhubung!");
 }
 
-void loop() {
-  mpu.update();  // Perbarui data sensor
+void calibrateInitialPosition() {
+  // Membaca sudut awal saat perangkat dinyalakan
+  mpu.update();
+  initialAngleX = mpu.getAngleX();
+  initialAngleY = mpu.getAngleY();
+  initialAngleZ = mpu.getAngleZ();
 
-  // Baca sudut kemiringan pada sumbu X dan Y
-  float angleX = mpu.getAngleX();
-  float angleY = mpu.getAngleY();
+  Serial.println("Kalibrasi selesai. Sudut awal (Sisi Depan):");
+  displayAngles(initialAngleX, initialAngleY, initialAngleZ);
+}
 
-  // Tampilkan data sudut di Serial Monitor
+void displayAngles(float angleX, float angleY, float angleZ) {
   Serial.print("Sudut X: ");
   Serial.print(angleX);
   Serial.print(" | Sudut Y: ");
-  Serial.println(angleY);
-
-  // Debugging: Pastikan nilai sudut tidak selalu sama
-  if (angleX == 0 && angleY == 0) {
-    Serial.println("Sensor tidak membaca perubahan.");
-  }
-
-  // Periksa apakah sudut melebihi ambang batas
-  if (abs(angleX) > THRESHOLD_ANGLE || abs(angleY) > THRESHOLD_ANGLE) {
-    // Tentukan arah dan bunyi buzzer
-    if (angleX > THRESHOLD_ANGLE) {
-      Serial.println("Bersandar ke kanan!");
-      buzzerBeep(500);  // Bunyi panjang
-    } else if (angleX < -THRESHOLD_ANGLE) {
-      Serial.println("Bersandar ke kiri!");
-      buzzerBeep(100);  // Bunyi pendek
-    } else if (angleY > THRESHOLD_ANGLE) {
-      Serial.println("Miring ke depan!");
-      buzzerBeep(300);  // Bunyi sedang
-    } else if (angleY < -THRESHOLD_ANGLE) {
-      Serial.println("Miring ke belakang!");
-      buzzerBeep(700);  // Bunyi lebih panjang
-    }
-  } else {
-    digitalWrite(BUZZER_PIN, LOW);  // Matikan buzzer jika tidak ada peringatan
-  }
-
-  delay(500);  // Tunggu 0.5 detik sebelum membaca ulang
+  Serial.print(angleY);
+  Serial.print(" | Sudut Z: ");
+  Serial.println(angleZ);
 }
 
-// Fungsi untuk mengatur bunyi buzzer
-void buzzerBeep(int duration) {
-  digitalWrite(BUZZER_PIN, HIGH);
-  delay(duration);
-  digitalWrite(BUZZER_PIN, LOW);
+void checkAngleThreshold(float angleX, float angleY, float angleZ) {
+  // Hitung selisih sudut dari posisi awal
+  float deltaX = angleX - initialAngleX;
+  float deltaY = angleY - initialAngleY;
+  float deltaZ = angleZ - initialAngleZ;
+
+  if (deltaX > threshold) {
+    playTone(1000, "Kanan");  // Nada untuk arah kanan
+  } else if (deltaX < -threshold) {
+    playTone(1500, "Kiri");  // Nada untuk arah kiri
+  } else if (deltaY > threshold) {
+    playTone(2000, "Depan");  // Nada untuk arah depan
+  } else if (deltaY < -threshold) {
+    playTone(2500, "Belakang");  // Nada untuk arah belakang
+  } else if (abs(deltaZ) > threshold) {
+    playTone(3000, "Rotasi");  // Nada untuk rotasi di sumbu Z
+  }
+}
+
+void playTone(int frequency, const char* direction) {
+  Serial.print("Arah: ");
+  Serial.println(direction);
+  tone(buzzerPin, frequency);  
+  delay(1000);  
+  noTone(buzzerPin);  
 }
