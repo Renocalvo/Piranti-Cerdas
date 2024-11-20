@@ -2,7 +2,7 @@
 #include <MPU6050_light.h>
 
 MPU6050 mpu(Wire);
-const int ldrPin = 36;  // Pin analog untuk LDR (ADC1_0 pada ESP32)
+const int ldrPin = 34;  // Pin analog untuk LDR (ADC1_0 pada ESP32)
 
 void setup() {
     Serial.begin(115200);           // Mengatur komunikasi serial
@@ -29,15 +29,16 @@ void loop() {
     int ldrValue = analogRead(ldrPin);
 
     // Mengklasifikasikan intensitas cahaya dari nilai LDR
-    if (ldrValue < 50) {
+    if (ldrValue > 2000) {
         Serial.println("Keadaan: Gelap");
-    } else if (ldrValue >= 50 && ldrValue < 500) {
+    } else if (ldrValue > 500 && ldrValue <= 2000) {
         Serial.println("Keadaan: Redup");
-    } else if (ldrValue >= 500 && ldrValue < 2000) {
+    } else if (ldrValue > 50 && ldrValue <= 500) {
         Serial.println("Keadaan: Cahaya Terang");
     } else {
         Serial.println("Keadaan: Sangat Terang");
     }
+
 
     // Memperbarui pembacaan dari sensor MPU6050
     mpu.update();

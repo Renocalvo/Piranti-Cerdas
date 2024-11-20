@@ -6,11 +6,11 @@
 #define LEDPIN 25        // Define pin for LED
 
 // WiFi credentials
-const char* ssid = "B";
-const char* password = "indrabyu21";
+const char* ssid = "Yoe_Dean";
+const char* password = "12345678";
 
 // Server URL for sending data
-const char* serverName = "http://192.168.43.47/Pirdas-Modul4/connection.php";
+const char* serverName = "http://192.168.254.231/Pirdas-Modul4/connection.php";
 
 void setup() {
   Serial.begin(9600);           // Start serial communication

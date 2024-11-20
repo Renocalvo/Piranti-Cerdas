@@ -1,40 +1,46 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Wire.h>
-#include <MPU6050.h>
+#include <MPU6050_tockn.h>  // Pastikan Anda menggunakan pustaka tockn
 
-const char* ssid = "your_ssid";         
-const char* password = "your_password";  
-const char* serverUrl = "http://your_server_ip/save_sensor_data.php";
+const char* ssid = "Yoe_Dean";          // SSID WiFi
+const char* password = "12345678";    // Password WiFi
+const char* serverUrl = "http://192.168.254.231/Pirdas-Modul4/connection.php";
 
-MPU6050 mpu(Wire);
+MPU6050 mpu(Wire);  // Inisialisasi MPU6050 dengan Wire
 
 void setup() {
     Serial.begin(115200);
-    WiFi.begin(ssid, password);
+    delay(1000);
 
-    // Menunggu koneksi WiFi
+    // Koneksi ke jaringan WiFi
+    WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) {
         delay(1000);
-        Serial.println("Menghubungkan ke WiFi...");
+        Serial.println("Connecting to WiFi...");
     }
-    Serial.println("Terhubung ke WiFi");
 
+    Serial.println("WiFi Connected!");
+    Serial.println("SSID: " + String(WiFi.SSID()));
+    Serial.println("Local IP: " + WiFi.localIP().toString());
+
+    // Inisialisasi MPU6050
     Wire.begin();
     mpu.begin();
+    mpu.calcGyroOffsets(true);  // Hitung offset gyro untuk akurasi
+    Serial.println("MPU6050 berhasil diinisialisasi!");
 }
 
 void loop() {
-    mpu.update();
+    mpu.update();  // Perbarui data dari MPU6050
 
-    // Membaca data sumbu X dan Y dari MPU6050
-    float x = mpu.getAngleX();
-    float y = mpu.getAngleY();
+    float x = mpu.getGyroAngleX();  // Sudut rotasi pada sumbu X
+    float y = mpu.getGyroAngleY();  // Sudut rotasi pada sumbu Y
 
     String arah = "";
     float angka_sumbu = 0;
 
-    // Mengklasifikasikan kemiringan
+    // Klasifikasi arah berdasarkan data MPU6050
     if (x > 10) {
         arah = "kiri";
         angka_sumbu = x;
@@ -47,35 +53,39 @@ void loop() {
     } else if (y < -10) {
         arah = "belakang";
         angka_sumbu = y;
+    } else {
+        arah = "stabil";
     }
 
-    // Kirim data hanya jika ada arah yang valid
-    if (arah != "") {
-        if (WiFi.status() == WL_CONNECTED) {
-            HTTPClient http;
-            http.begin(serverUrl);
-            http.addHeader("Content-Type", "application/json");
+    // Menampilkan data ke Serial Monitor
+    Serial.print("Sudut X: ");
+    Serial.print(x);
+    Serial.print(" | Sudut Y: ");
+    Serial.print(y);
+    Serial.print(" | Arah: ");
+    Serial.println(arah);
 
-            // Menyiapkan data JSON
-            String jsonData = "{\"angka_sumbu\":" + String(angka_sumbu) + ",\"arah\":\"" + arah + "\"}";
+    // Mengirim data ke server menggunakan HTTP GET
+    if (arah != "stabil" && WiFi.status() == WL_CONNECTED) {
+        String url = serverUrl;
+        url += "?arah=" + arah;
+        url += "&angka_sumbu=" + String(angka_sumbu);
 
-            // Mengirimkan request POST
-            int httpResponseCode = http.POST(jsonData);
+        HTTPClient http;
+        http.begin(url);
 
-            // Cek status response dari server
-            if (httpResponseCode > 0) {
-                String response = http.getString();
-                Serial.println("Response dari server:");
-                Serial.println(response);
-            } else {
-                Serial.print("Error mengirim data: ");
-                Serial.println(httpResponseCode);
-            }
-
-            http.end();
+        int httpResponseCode = http.GET();
+        if (httpResponseCode == 200) {
+            String response = http.getString();
+            Serial.println("Data sent successfully!");
+            Serial.println("Response: " + response);
+        } else {
+            Serial.print("Error code: ");
+            Serial.println(httpResponseCode);
         }
+
+        http.end();  // Mengakhiri koneksi HTTP
     }
 
-    delay(10000); // Kirim setiap 5 detik (sesuaikan sesuai kebutuhan)
+    delay(10000);  // Tunggu 1 detik sebelum membaca ulang
 }
-
