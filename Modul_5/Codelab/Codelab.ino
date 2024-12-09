@@ -1,7 +1,6 @@
-
-#define BLYNK_TEMPLATE_ID "BLYNK_TEMPLATE_ID"
-#define BLYNK_TEMPLATE_NAME "BLYNK_TEMPLATE_NAME"
-#define BLYNK_AUTH_TOKEN "BLYNK_AUTH_TOKEN"
+#define BLYNK_TEMPLATE_ID "TMPL6W7eiI1Qn"
+#define BLYNK_TEMPLATE_NAME "Codelab"
+#define BLYNK_AUTH_TOKEN "NTCI_Udaildy6Yo8xUUAUwT7gWC5vFWM"
 
 // Uncomment this line to enable debug prints
 #define BLYNK_PRINT Serial
@@ -11,8 +10,8 @@
 #include <BlynkSimpleEsp32.h>
 
 // Wi-Fi credentials
-char ssid[] = "YOUR_SSID";
-char pass[] = "YOUR_PASSWORD";
+char ssid[] = "Hahaha";
+char pass[] = "AkbarPalu73";
 
 // LDR Pin configuration
 const int ldrPin = 34;
