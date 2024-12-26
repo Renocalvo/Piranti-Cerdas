@@ -1,3 +1,4 @@
+
 <?php
 include 'connection.php'; // Hubungkan ke database
 
@@ -20,3 +21,4 @@ $conn->close();
 header('Content-Type: application/json');
 echo json_encode($data);
 ?>
+

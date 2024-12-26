@@ -1,3 +1,4 @@
+
 function sendSensorData() {
     const data = {
         angka_sumbu: 15.2,  // contoh data; sesuaikan ini dengan data aktual dari sensor

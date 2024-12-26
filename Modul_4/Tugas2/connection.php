@@ -1,3 +1,4 @@
+
 <?php
 // Konfigurasi database
 $host = "localhost";

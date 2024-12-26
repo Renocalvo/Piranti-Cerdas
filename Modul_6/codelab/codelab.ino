@@ -8,8 +8,8 @@
 #include <BlynkSimpleEsp32.h>
 #include <DHT.h>
 
-char ssid[] = "Jaringan sibuk";
-char pass[] = "Nenobayuramadhan";
+char ssid[] = "Test1";
+char pass[] = "12345678";
 
 // DHT Sensor Pin configuration
 #define DHTPIN 15           
@@ -69,7 +69,7 @@ void setup() {
     pinMode(BUZZER_PIN, OUTPUT); // Atur pin buzzer sebagai output
 
     // Set timer untuk mengirim data setiap 2 detik
-    timer.setInterval(2000L, sendData);
+    timer.setInterval(1000L, sendData);
 }
 
 void loop() {
