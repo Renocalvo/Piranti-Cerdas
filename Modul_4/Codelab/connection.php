@@ -1,3 +1,4 @@
+
 <?php
 
 $servername = "localhost";
@@ -29,3 +30,4 @@ if (isset($_GET['ldr_value'])) {
 exit();
 
 ?>
+

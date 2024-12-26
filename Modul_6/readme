@@ -1,0 +1,10 @@
+-- membuat database
+CREATE DATABASE smart_home;
+USE smart_home;
+
+-- membuat tabel
+CREATE TABLE sensor_data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    status VARCHAR(255),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
